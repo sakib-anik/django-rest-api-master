@@ -1,0 +1,161 @@
+DJango Rest API with MySQL:
+
+>pip install django
+
+>django-admin startproject SchoolProject .
+
+>py manage.py runserver
+
+>pip install pymysql
+
+>py manage.py startapp StudentApp
+
+>pip install django-cors-headers
+
+>pip install djangorestframework
+
+SchoolProject/settings.py :
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'StudentApp',
+    'corsheaders',
+    'rest_framework',
+]
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware'
+]
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_ALL_HEADERS = True
+
+StuentApp/models.py :
+
+from django.db import models
+
+class Student(models.Model):
+	name = models.CharField(max_length = 255)
+	address = models.CharField(max_length = 255)
+	fee = models.IntegerField()
+
+StudentApp/serializers.py :
+from rest_framework import serializers
+from StudentApp.models import Student
+
+class StudentSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = Student
+		fields = '__all__'
+
+After that lets Configure the Mysql Database into our Django Project
+Install the database Url  type by the following command
+
+>pip install dj-database-url
+
+For the database connection between django and mysql
+>pip install mysqlclient
+
+SchoolProject/settings.py :
+
+import dj_database_url
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+
+DATABASES['default'] = dj_database_url.parse('mysql://root@localhost/sms')
+
+After that run the migration command:
+
+>py manage.py makemigrations
+
+>py manage.py migrate
+
+StudentApp/views.py :
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.parsers import JSONParser
+from django.http.response import JsonResponse
+from StudentApp.serializers import StudentSerializer
+from StudentApp.models import Student
+
+@csrf_exempt
+def studentApi(request,id=0):
+    if request.method == 'GET':
+        student = Student.objects.all()
+        student_serializer = StudentSerializer(student, many=True)
+        return JsonResponse(student_serializer.data,safe=False)
+    elif request.method == 'POST':
+        student_data = JSONParser().parse(request)
+        student_serializer = StudentSerializer(data=student_data)
+        if student_serializer.is_valid():
+            student_serializer.save()
+            return JsonResponse("Added Successfully", safe=False)
+        return JsonResponse("Failed to Add", safe=False)
+    elif request.method == 'PUT':
+        student_data = JSONParser.parse(request)
+        student = Student.objects.get(id=id)
+        student_serializer = StudentSerializer(student, data=student_data)
+        if student_serializer.is_valid():
+            student_serializer.save()
+            return JsonResponse("Updated Successfully", safe=False)
+        return JsonResponse("Failed to Update")
+    elif request.method == 'DELETE':
+        student = Student.objects.get(id=id)
+        student.delete()
+        return JsonResponse("Deleted Successfully", safe=False)
+    elif request.method == 'PATCH':
+        student_data = JSONParser().parse(request)
+        student = Student.objects.get(id=id)
+        student_serializer = StudentSerializer(student, data=student_data, partial=True)
+        if student_serializer.is_valid():
+            student_serializer.save()
+            return JsonResponse("Updated Successfully", safe=False)
+        return JsonResponse("Failed to Update")
+
+SchoolProject/urls.py :
+from django.contrib import admin
+from django.urls import path, re_path
+from StudentApp import views
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+
+    path('student', views.studentApi),                 # Gets All Students [GET] # Add Student [POST]
+    path('student/<int:id>', views.studentApi),        # Update a student [PUT]  # DELETE A Student [DELETE]
+]
+
+
+Demo:
+# urls.py
+from django.urls import path
+from StudentApp import views
+
+urlpatterns = [
+    path('student/<int:id>/', views.studentApi),
+]
+
+# views.py
+from django.http import JsonResponse
+
+def studentApi(request, id):
+    return JsonResponse({"message": f"Student ID is {id}"})
+
+{
+  "message": "Student ID is 7"
+}

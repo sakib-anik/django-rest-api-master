@@ -1,0 +1,151 @@
+{% extends 'Home/base.html' %}
+{% block content %}
+<button
+type="button"
+class="btn btn-primary"
+data-bs-toggle="modal"
+data-bs-target="#addNewCCModal"
+>
+    Add Category
+</button>
+
+<!-- Basic Bootstrap Table -->
+              <div class="card">
+                <h5 class="card-header">Categories</h5>
+                <div class="table-responsive text-nowrap">
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th></th>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Created at</th>
+                        <th>Products</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody class="table-border-bottom-0">
+                      {% for category in categories %}
+                      <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                        {% if category.imageUrl %}
+                            <img src="/media/{{ category.imageUrl }}" alt="{{ category.name }}" width="80" height="60" />
+                        {% else %}
+                            <span class="text-muted">No Image</span>
+                        {% endif %}
+                        </td>
+                        <td>{{ category.name }}</td>
+                        <td>{{ category.created_at }}</td>
+                        <td>
+                          {% if category.products.all %}
+                            <ul class="list-unstyled mb-0">
+                            {% for product in category.products.all %}
+                                <li>{{ product.title }} ({{ product.price }})</li>
+                            {% endfor %}
+                            </ul>
+                          {% else %}
+                            <span class="text-muted">No products</span>
+                          {% endif %}
+                        </td>
+                        <td><span class="badge bg-label-primary me-1">Active</span></td>
+                        <td>
+                          <div class="dropdown">
+                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                              <i class="bx bx-dots-vertical-rounded"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                              <button data-bs-toggle="modal" 
+                                    data-bs-target="#exampleModal{{ category.id }}" 
+                                    class="dropdown-item" 
+                                ><i class="bx bx-edit-alt me-1"></i> Edit</button>
+                              <a class="dropdown-item" href="{% url 'delete_category' category.id %}"
+                                ><i class="bx bx-trash me-1"></i> Delete</a
+                              >
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                      <div class="modal fade" id="exampleModal{{ category.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered1 modal-simple modal-add-new-cc">
+                  <div class="modal-content p-3 p-md-5">
+                    <div class="modal-body">
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      <div class="text-center mb-4">
+                        <h3>Edit Category</h3>
+                      </div>
+                      <form id="updateCCForm" method="POST" action="{% url 'update_category' %}" class="row g-3" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="col-12 col-md-6">
+                          <label class="form-label" for="modalAddCardName">Name</label>
+                          <input type="text" value="{{ category.name }}" id="modalAddCardName" name="category_name" class="form-control" placeholder="John Doe" />
+                        </div>
+                        <div class="col-12 col-md-6">
+                          <label class="form-label" for="modalAddCardName">Image</label>
+                          <input type="file" multiple id="modalAddCardName" name="category_image" class="form-control" placeholder="John Doe" />
+                        </div>
+                        <div class="col-12 text-center mt-4">
+                          <button type="submit" class="btn btn-primary me-sm-3 me-1">Update</button>
+                          <button
+                            type="reset"
+                            class="btn btn-label-secondary btn-reset"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+</div>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <!--/ Basic Bootstrap Table -->
+
+<!-- Add New Credit Card Modal -->
+              <div class="modal fade" id="addNewCCModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered1 modal-simple modal-add-new-cc">
+                  <div class="modal-content p-3 p-md-5">
+                    <div class="modal-body">
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      <div class="text-center mb-4">
+                        <h3>Create Category</h3>
+                      </div>
+                      <form id="addNewCCForm" method="POST" action="{% url 'add_category' %}" class="row g-3" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="col-12 col-md-6">
+                          <label class="form-label" for="modalAddCardName">Name</label>
+                          <input type="text" id="modalAddCardName" name="category_name" class="form-control" placeholder="John Doe" />
+                        </div>
+                        <div class="col-12 col-md-6">
+                          <label class="form-label" for="modalAddCardName">Image</label>
+                          <input type="file" multiple id="modalAddCardName" name="category_image" class="form-control" placeholder="John Doe" />
+                        </div>
+                        <div class="col-12 text-center mt-4">
+                          <button type="submit" class="btn btn-primary me-sm-3 me-1">Submit</button>
+                          <button
+                            type="reset"
+                            class="btn btn-label-secondary btn-reset"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!--/ Add New Credit Card Modal -->
+
+
+
+
+{% endblock %}
